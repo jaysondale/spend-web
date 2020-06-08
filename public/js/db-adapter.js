@@ -6,31 +6,31 @@ let getTransactions = async function(usrID, category) {
     // Get user ref
     let usrRef = db.collection(usrID);
 
-    // Get maps
-    return await usrRef.doc("id_map").get().then(async docSnap => {
+    // Get transactions
+    return await usrRef.doc("categories").collection(category).get().then(async snap => {
+        let transactions = new Map();
+        snap.forEach(doc => {
+            let tData = doc.data();
+            let transaction = new Map();
+            for (let [key, value] of Object.entries(tData)) {
+                transaction.set(key, value);
+            }
+            transactions.set(doc.id, transaction);
+        });
+        console.log(transactions);
+        return transactions;
+    });
+};
+
+// Get category list
+let getCategories = async function(usrID) {
+    // Get user ref
+    let usrRef = db.collection(usrID);
+
+    // Get category names
+    return await usrRef.doc("categories").get().then(async docSnap => {
         if (docSnap) {
-            let id_map = docSnap.data();
-            // Get transactions
-            return await usrRef.doc("transactions").get().then(docSnap => {
-                let transactions = docSnap.data();
-                let filteredTransactions = new Map();
-                // Filter out transactions
-                for (let [key, value] of Object.entries(transactions)) {
-                    let id = value["ID"];
-                    if (id in id_map){
-                        if (id_map[id] === category) {
-                            filteredTransactions.set(key, value);
-                        }
-                    }
-                }
-                return filteredTransactions;
-            })
-        } else {
-            return -1;
+            return docSnap.data()["names"];
         }
     })
 };
-
-(async () => [
-    console.log(await getTransactions("user_1", "Food"))
-])();
