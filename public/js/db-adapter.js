@@ -1,6 +1,8 @@
 // Global variables
 const db = firebase.firestore();
 
+const DEFAULT_CATEGORY = "unclassified";
+
 // Get transactions for given user and category
 let getTransactions = async function(usrID, category) {
     // Get user ref
@@ -32,5 +34,31 @@ let getCategories = async function(usrID) {
         if (docSnap) {
             return docSnap.data()["names"];
         }
+    })
+};
+
+let addTransaction = async function(usrID, ID, date, debit, credit) {
+    // Get user ref
+    let usrRef = db.collection(usrID);
+
+    // Check to ensure numbers are formatted
+    if (typeof debit === "string") {
+        debit = parseFloat(debit);
+    }
+
+    if (typeof credit === "string") {
+        credit = parseFloat(credit);
+    }
+
+    // Add to unclassified category
+    await usrRef.doc("categories").collection(DEFAULT_CATEGORY).add({
+        date: date,
+        ID: ID,
+        debit: debit,
+        credit: credit
+    }).then(function() {
+        console.log("Transaction uploaded");
+    }).catch(function(er) {
+        console.log("Error adding transaction to database: " + er);
     })
 };

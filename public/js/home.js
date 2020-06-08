@@ -22,4 +22,10 @@
         $("#statement-upload-modal").modal('show');
     })
 
+    $("#uploadBtn").click(() => {
+        let files = $("#fileSelector").prop("files");
+        uploadStatement(files);
+        $(this).val("");
+    })
+
 })(jQuery);
