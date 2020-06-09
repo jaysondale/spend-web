@@ -43,11 +43,19 @@ let addTransaction = async function(usrID, ID, date, debit, credit) {
 
     // Check to ensure numbers are formatted
     if (typeof debit === "string") {
-        debit = parseFloat(debit);
+        if (debit === "") {
+            debit = 0;
+        } else {
+            debit = parseFloat(debit);
+        }
     }
 
     if (typeof credit === "string") {
-        credit = parseFloat(credit);
+        if (credit === "") {
+            credit = 0;
+        } else {
+            credit = parseFloat(credit);
+        }
     }
 
     // Add to unclassified category

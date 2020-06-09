@@ -1,12 +1,13 @@
 let uploadStatement = function(files) {
-    const reader = new FileReader();
-    reader.onload = function() {
-        tdCSVParser(reader.result);
-    };
 
     Array.prototype.forEach.call(files, function(file) {
+        const reader = new FileReader();
+        reader.onload = function() {
+            tdCSVParser(reader.result);
+        };
         reader.readAsText(file);
     });
+
 };
 
 let tdCSVParser = function(csv) {

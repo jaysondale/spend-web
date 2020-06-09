@@ -20,12 +20,13 @@
 
     $("#upload-statements-btn").click(() => {
         $("#statement-upload-modal").modal('show');
-    })
+    });
 
-    $("#uploadBtn").click(() => {
-        let files = $("#fileSelector").prop("files");
+    $("#uploadBtn").click(function() {
+        let fileSelector = $("#fileSelector");
+        let files = fileSelector.prop("files");
         uploadStatement(files);
-        $(this).val("");
+        fileSelector.val("");
     })
 
 })(jQuery);
