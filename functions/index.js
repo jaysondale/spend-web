@@ -20,7 +20,17 @@ exports.classify = functions.firestore
             console.log(transactionId);
             console.log(ss_map);
             console.log(transactionId in ss_map);
-            if (transactionId in ss_map) {
+
+            let keySet = Object.keys(ss_map);
+            let keyFound = null;
+            for (let i = 0; i < keySet.length; i++) {
+                if (keySet[i] in transactionId) {
+                    keyFound = keySet[i];
+                    break;
+                }
+            }
+
+            if (keyFound !== null) {
                 // Delete document in unclassified
                 let catRef = db.collection(userID).doc('categories');
                 await catRef.collection('unclassified').doc(trans_doc_id).delete();
@@ -35,6 +45,8 @@ exports.classify = functions.firestore
                     credit: transaction["credit"]
                 });
                 console.log("Transaction " + trans_doc_id + " successfully moved to " + newCat);
+            } else {
+                console.log("No substring map found. Transaction not being moved");
             }
 
         })().catch(er => {

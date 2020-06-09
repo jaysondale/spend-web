@@ -1,7 +1,7 @@
 // Global variables
 const db = firebase.firestore();
 
-const DEFAULT_CATEGORY = "unclassified";
+const DEFAULT_CATEGORY = "Unclassified";
 
 // Get transactions for given user and category
 let getTransactions = async function(usrID, category) {
@@ -19,7 +19,6 @@ let getTransactions = async function(usrID, category) {
             }
             transactions.set(doc.id, transaction);
         });
-        console.log(transactions);
         return transactions;
     });
 };
@@ -68,5 +67,27 @@ let addTransaction = async function(usrID, ID, date, debit, credit) {
         console.log("Transaction uploaded");
     }).catch(function(er) {
         console.log("Error adding transaction to database: " + er);
+    })
+};
+
+// Get keywords from category
+let getKeywords = async function(usrID, category) {
+    // Get user reference
+    let usrRef = db.collection(usrID);
+
+    return await usrRef.doc('ss_map').get().then((docSnap) => {
+        if (docSnap) {
+            let data = docSnap.data();
+            let keywords = [];
+            Object.keys(data).forEach(key => {
+                if (data[key] === category) {
+                    keywords.push(key);
+                }
+            });
+            return keywords;
+        } else {
+            console.log("Error getting substring map for user: " + usrID);
+            return null;
+        }
     })
 };
