@@ -9,7 +9,9 @@
 
         // Set click operation on category buttons
         $(".category-btn").click(async function() {
+            $('.selected-category').removeClass('selected-category');
             let selectedCat = $(this).text();
+            $(this).addClass('selected-category');
             await loadCategory(selectedCat);
 
         });
@@ -42,7 +44,7 @@
             // Change action buttons
             let parent = $(this).parent();
             parent.children('.btn').remove();
-            parent.append(`<a class="btn btn-success save-keyword-btn">Save</a>`);
+            parent.append(`<a class="btn btn-success save-keyword-btn">Save</a><a class="btn btn-outline-warning cancel-btn">Cancel</a>`);
 
             // Enable save button
             $(".save-keyword-btn").click(async function() {
@@ -50,6 +52,11 @@
                 let new_keyword = $(this).parent().parent().parent().children('.keyword').children('.edit-keyword').val();
                 await modifyKeyword("user_1", category, keyword, new_keyword);
                 await loadCategory(category); // Reload view
+            });
+
+            // Enable cancel button
+            $('.cancel-btn').click(function() {
+                loadCategory(category);
             })
         });
 
