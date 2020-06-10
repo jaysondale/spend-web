@@ -70,24 +70,76 @@ let addTransaction = async function(usrID, ID, date, debit, credit) {
     })
 };
 
+let getSSMapObject = async function(usrId) {
+    let usrRef = db.collection(usrId);
+    // Get current data
+    return await usrRef.doc('ss_map').get().then(docSnap => {
+        if (docSnap) {
+            return docSnap.data();
+        } else {
+            return null
+        }
+    });
+};
+
 // Get keywords from category
 let getKeywords = async function(usrID, category) {
-    // Get user reference
-    let usrRef = db.collection(usrID);
+    return await getSSMapObject(usrID).then(data => {
+        let keywords = [];
+        Object.keys(data).forEach(key => {
+            if (data[key] === category) {
+                keywords.push(key);
+            }
+        });
+        return keywords;
+    });
+};
 
-    return await usrRef.doc('ss_map').get().then((docSnap) => {
-        if (docSnap) {
-            let data = docSnap.data();
-            let keywords = [];
-            Object.keys(data).forEach(key => {
-                if (data[key] === category) {
-                    keywords.push(key);
-                }
-            });
-            return keywords;
-        } else {
-            console.log("Error getting substring map for user: " + usrID);
-            return null;
+// Add new keyword to category
+let addKeyword = async function(userID, category, keyword) {
+    let data = await getSSMapObject(userID);
+
+    // Ensure that the keyword doesn't already exist -> or that there are no keyword conflicts
+    let keys = Object.keys(data);
+    for (let i = 0; i < keys.length; i++) {
+        if (keys[i].includes(keyword)) {
+            return keys[i];
         }
-    })
+    }
+
+    // Add new substring map
+    data[keyword] = category;
+    // Overwrite document
+    let usrRef = db.collection(userID);
+    await usrRef.doc('ss_map').set(data);
+    return 0;
+};
+
+// Modify an existing keyword
+let modifyKeyword = async function(userID, category, old_kw, new_kw) {
+    let data = await getSSMapObject(userID);
+
+    // Update keyword
+    let newData = {};
+    // This method maintains order of keywords
+    Object.keys(data).forEach(key => {
+        if (key === old_kw) {
+            newData[new_kw] = data[old_kw];
+        } else {
+            newData[key] = data[key];
+        }
+    });
+    // Update substring map document
+    let usrRef = db.collection(userID);
+    await usrRef.doc('ss_map').set(newData);
+};
+
+// Delete keyword
+let deleteKeyword = async function (userID, category, keyword) {
+    let data = await getSSMapObject(userID);
+    // Delete keyword
+    delete data[keyword];
+    // Reset data
+    let usrRef = db.collection(userID);
+    await usrRef.doc('ss_map').set(data);
 };
