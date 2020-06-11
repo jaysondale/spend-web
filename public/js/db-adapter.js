@@ -36,7 +36,7 @@ let getCategories = async function(usrID) {
     })
 };
 
-let addTransaction = async function(usrID, ID, date, debit, credit) {
+let addTransaction = async function(usrID, ID, date, debit, credit, ss_map) {
     // Get user ref
     let usrRef = db.collection(usrID);
 
@@ -57,8 +57,19 @@ let addTransaction = async function(usrID, ID, date, debit, credit) {
         }
     }
 
+    let category = DEFAULT_CATEGORY;
+
+    // Check substring map
+    let keys = Object.keys(ss_map);
+    for (let i = 0; i < keys.length; i++) {
+        if (ID.includes(keys[i])) {
+            category = ss_map[keys[i]];
+            break;
+        }
+    }
+
     // Add to unclassified category
-    await usrRef.doc("categories").collection(DEFAULT_CATEGORY).add({
+    await usrRef.doc("categories").collection(category).add({
         date: date,
         ID: ID,
         debit: debit,

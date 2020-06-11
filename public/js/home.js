@@ -1,10 +1,13 @@
 ($ => {
-
-    (async () => {
+    let populateCategories = async function() {
         // Populate categories from database
         let categories = await getCategories("user_1");
         categories.forEach(category => {
-            $("#category-list").append(`<tr><th><a class="btn category-btn">${category}</a></th></tr>`)
+            if (category === DEFAULT_CATEGORY) {
+                $("#category-list").append(`<tr><th><a class="btn category-btn default-category">${category}</a></th></tr>`)
+            } else {
+                $("#category-list").append(`<tr><th><a class="btn category-btn">${category}</a></th></tr>`)
+            }
         });
 
         // Set click operation on category buttons
@@ -13,8 +16,12 @@
             let selectedCat = $(this).text();
             $(this).addClass('selected-category');
             await loadCategory(selectedCat);
-
         });
+    };
+
+    (async () => {
+        await populateCategories();
+        $(".default-category").trigger("click");
     })();
 
     let loadCategory = async function(category) {

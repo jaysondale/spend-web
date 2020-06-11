@@ -5,48 +5,6 @@ const DEFAULT_CATEGORY = "Unclassified";
 admin.initializeApp();
 const db = admin.firestore();
 
-exports.classifyNewTransaction = functions.firestore
-    .document('{userID}/categories/Unclassified/{transaction}')
-    .onCreate((snap, context) => {
-
-        // Get user's substring map
-        let userID = context.params.userID;
-        let trans_doc_id = context.params.transaction;
-        let transaction = snap.data();
-
-        (async () => {
-            let ss_map = await db.collection(userID).doc("ss_map").get();
-            ss_map = ss_map.data();
-            let transactionId = transaction['ID'];
-
-            let keySet = Object.keys(ss_map);
-            let keyFound = null;
-            for (let i = 0; i < keySet.length; i++) {
-                if (transactionId.includes(keySet[i])) {
-                    keyFound = keySet[i];
-                    break;
-                }
-            }
-
-            if (keyFound !== null) {
-                // Delete document in unclassified
-                let catRef = db.collection(userID).doc('categories');
-                await catRef.collection('Unclassified').doc(trans_doc_id).delete();
-                console.log(trans_doc_id + " deleted!");
-
-                // Create new document in desired category
-                let newCat = ss_map[keyFound];
-                await catRef.collection(newCat).doc(trans_doc_id).set(transaction);
-                console.log("Transaction " + trans_doc_id + " successfully moved to " + newCat);
-            } else {
-                console.log("No substring map found. Transaction not being moved");
-            }
-
-        })().catch(er => {
-            console.log(er);
-        });
-});
-
 exports.classify = functions.firestore
     .document("{userID}/ss_map")
     .onUpdate((change, context) => {
@@ -132,14 +90,18 @@ exports.classify = functions.firestore
                                 // Use full substring map
                                 let ss_map = after; // For clarity
                                 let ss_keys = afterKeys;
+
                                 for (let j = 0; j < ss_keys.length; j++) {
+                                    console.log(data["ID"]);
                                     if (data["ID"].includes(ss_keys[j])) {
                                         newCat = ss_map[ss_keys[j]];
                                         break;
                                     }
                                 }
                                 // If category is not found, move to unclassified
-                                newCat = "Unclassified";
+                                if (newCat === "") {
+                                    newCat = "Unclassified";
+                                }
                             } else {
                                 console.log("Only using single mapping");
                                 // Only use the new substring map
