@@ -24,26 +24,45 @@
         $(".default-category").trigger("click");
     })();
 
+    let dataTable = $("#t-table").DataTable({
+        "scrollY": "500px",
+    });
+
+    let kwDataTable = $("#kw-table").DataTable({
+        "scrollY": "500px"
+    });
+
     let loadCategory = async function(category) {
         // Clear existing transactions
-        $(".t-row").remove();
+        dataTable.clear();
+        kwDataTable.clear();
+
         let transactions = await getTransactions("user_1", category);
         transactions.forEach((t, key, map) => {
-            $("#transaction-table-body").append(`<tr class="t-row"><th>${t.get("ID")}</th><th>${t.get("date")}</th><th>$${t.get("debit")}</th><th>$${t.get("credit")}</th></tr>`)
+            dataTable.row.add([
+                t.get("ID"),
+                t.get("date"),
+                t.get("debit"),
+                t.get("credit")
+            ]).draw(false);
         });
 
         // Load keywords
         let keywords = await getKeywords("user_1", category);
         if (keywords != null) {
             keywords.forEach(keyword => {
-                $("#mapping-table-body").append(`<tr class="t-row"><th class="keyword">${keyword}</th><th><div class="btn-group"><a class="btn btn-warning edit-btn">Edit</a><a class="btn btn-danger delete-btn">Delete</a></div></th></tr>`);
+                // $("#mapping-table-body").append(`<tr class="t-row"><td class="keyword">${keyword}</td><td><div class="btn-group"><a class="btn btn-warning edit-btn">Edit</a><a class="btn btn-danger delete-btn">Delete</a></div></td></tr>`);
+                kwDataTable.row.add([
+                    keyword,
+                    "<div class=\"btn-group\"><a class=\"btn btn-warning edit-btn\">Edit</a><a class=\"btn btn-danger delete-btn\">Delete</a></div>"
+                ]).draw(false);
             });
         }
 
         // Activate edit button
         $(".edit-btn").click(function() {
             // Get selected keyword
-            let keyword_el = $(this).parent().parent().parent().children(".keyword");
+            let keyword_el = $(this).parent().parent().parent().children(".sorting_1");
             let keyword = keyword_el.text();
             keyword_el.text(""); // Reset text
             keyword_el.append(`<input class="form-control edit-keyword" value="${keyword}">`);
@@ -56,7 +75,7 @@
             // Enable save button
             $(".save-keyword-btn").click(async function() {
                 // Get updated keyword
-                let new_keyword = $(this).parent().parent().parent().children('.keyword').children('.edit-keyword').val();
+                let new_keyword = $(this).parent().parent().parent().children('.sorting_1').children('.edit-keyword').val();
                 await modifyKeyword("user_1", category, keyword, new_keyword);
                 await loadCategory(category); // Reload view
             });
@@ -69,17 +88,19 @@
 
         // Activate delete button
         $(".delete-btn").click(async function() {
-            let keyword = $(this).parent().parent().parent().children('.keyword').text();
+            let keyword = $(this).parent().parent().parent().children('.sorting_1').text();
             await deleteKeyword("user_1", category, keyword);
             await loadCategory(category);
         });
 
         // Add button at the bottom of list
-        $("#mapping-table-body").append(`<tr class="t-row"><th><input class="form-control" type="text" id="new-keyword" placeholder="New Keyword"></th><th><a id="add-btn" class="btn btn-success">Add</a></th></tr>`)
+        kwDataTable.row.add([
+            '<input class="form-control" type="text" id="new-keyword" placeholder="New Keyword">',
+            '<a id="add-btn" class="btn btn-success">Add</a>'
+        ]).draw(false);
         $("#add-btn").click(async () => {
             let new_keyword = $("#new-keyword").val();
             let result = await addKeyword("user_1", category, new_keyword);
-            console.log(result);
             if (result !== 0) {
                 alert(`Keyword is conflicting with "${result}"! Try another keyword.`);
             } else {
@@ -110,6 +131,6 @@
     $("#map-btn").click(() => {
         $("#mapping-table").show();
         $("#transaction-table").hide();
-    })
+    });
 
 })(jQuery);
