@@ -1,12 +1,29 @@
 ($ => {
+
+    // Initializing data tables
+    let dataTable = $("#t-table").DataTable({
+        "scrollY": "500px",
+    });
+
+    let kwDataTable = $("#kw-table").DataTable({
+        "scrollY": "500px"
+    });
+
+    let catDataTable = $("#cat-table").DataTable({
+        "paging": false,
+        "scrollY": "500px",
+        "ordering": false,
+    });
+
+
     let populateCategories = async function() {
         // Populate categories from database
         let categories = await getCategories("user_1");
         categories.forEach(category => {
             if (category === DEFAULT_CATEGORY) {
-                $("#category-list").append(`<tr><th><a class="btn category-btn default-category">${category}</a></th></tr>`)
+                catDataTable.row.add([`<a class="btn category-btn default-category">${category}</a>`]).draw(false);
             } else {
-                $("#category-list").append(`<tr><th><a class="btn category-btn">${category}</a></th></tr>`)
+                catDataTable.row.add([`<a class="btn category-btn">${category}</a>`]).draw(false);
             }
         });
 
@@ -23,14 +40,6 @@
         await populateCategories();
         $(".default-category").trigger("click");
     })();
-
-    let dataTable = $("#t-table").DataTable({
-        "scrollY": "500px",
-    });
-
-    let kwDataTable = $("#kw-table").DataTable({
-        "scrollY": "500px"
-    });
 
     let loadCategory = async function(category) {
         // Clear existing transactions
